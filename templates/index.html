@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos de Calidad del Agua</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+
+    <main class="contenedor">
+
+        <header class="encabezado">
+            <h1>Datos de Calidad del Agua</h1>
+            <p>
+                Consulta los registros de las muestras de calidad del agua
+                del municipio de Cartago, Valle del Cauca.
+            </p>
+        </header>
+
+        <section class="panel busqueda">
+            <form action="{{ url_for('inicio') }}" method="GET">
+                <input
+                    type="text"
+                    name="buscar"
+                    placeholder="Buscar por código o tipo de muestra"
+                    value="{{ filtro }}"
+                >
+
+                <button type="submit" class="boton boton-primario">
+                    Buscar
+                </button>
+
+                <a href="{{ url_for('inicio') }}" class="boton-limpiar">
+                    Limpiar
+                </a>
+            </form>
+        </section>
+
+        <section class="panel sincronizacion">
+            <h2>Sincronización de datos</h2>
+
+            <p>
+                Consulta los registros publicados en datos.gov.co
+                y almacena los nuevos datos en nuestra base de datos.
+            </p>
+
+            <form action="{{ url_for('sincronizar') }}" method="POST">
+                <button type="submit" class="boton boton-secundario">
+                    Sincronizar datos
+                </button>
+            </form>
+        </section>
+
+        {% with mensajes = get_flashed_messages(with_categories=true) %}
+            {% if mensajes %}
+                {% for categoria, mensaje in mensajes %}
+                    <div class="mensaje {{ categoria }}">
+                        {{ mensaje }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="panel estadisticas">
+            <h2>Resumen de estadísticas</h2>
+
+            <div class="tarjetas-estadisticas">
+
+                <article class="tarjeta">
+                    <h3>Total de registros</h3>
+                    <p class="valor">
+                        {{ estadisticas.get('total_registros', 0) or 0 }}
+                    </p>
+                    <span>Registros almacenados</span>
+                </article>
+
+                <article class="tarjeta">
+                    <h3>Promedio de pH</h3>
+                    <p class="valor">
+                        {% if estadisticas.get('promedio_ph') is not none %}
+                            {{ "%.2f"|format(estadisticas.get('promedio_ph')) }}
+                        {% else %}
+                            Sin datos
+                        {% endif %}
+                    </p>
+                    <span>Indicador de pH</span>
+                </article>
+
+                <article class="tarjeta">
+                    <h3>Promedio de turbiedad</h3>
+                    <p class="valor">
+                        {% if estadisticas.get('promedio_turbiedad') is not none %}
+                            {{ "%.2f"|format(estadisticas.get('promedio_turbiedad')) }}
+                        {% else %}
+                            Sin datos
+                        {% endif %}
+                    </p>
+                    <span>Indicador de turbiedad</span>
+                </article>
+
+                <article class="tarjeta">
+                    <h3>Promedio de cloro</h3>
+                    <p class="valor">
+                        {% if estadisticas.get('promedio_cloro') is not none %}
+                            {{ "%.2f"|format(estadisticas.get('promedio_cloro')) }}
+                        {% else %}
+                            Sin datos
+                        {% endif %}
+                    </p>
+                    <span>Cloro residual libre</span>
+                </article>
+
+            </div>
+        </section>
+
+        <section class="panel analisis">
+            <h2>Indicadores de calidad del agua</h2>
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicador</th>
+                            <th>Valores registrados</th>
+                            <th>Valor mínimo</th>
+                            <th>Valor máximo</th>
+                            <th>Promedio</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>pH</td>
+                            <td>{{ estadisticas.get('cantidad_ph', 0) or 0 }}</td>
+                            <td>
+                                {% if estadisticas.get('minimo_ph') is not none %}
+                                    {{ "%.2f"|format(estadisticas.get('minimo_ph')) }}
+                                {% else %}
+                                    Sin datos
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if estadisticas.get('maximo_ph') is not none %}
+                                    {{ "%.2f"|format(estadisticas.get('maximo_ph')) }}
+                                {% else %}
+                                    Sin datos
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if estadisticas.get('promedio_ph') is not none %}
+                                    {{ "%.2f"|format(estadisticas.get('promedio_ph')) }}
+                                {% else %}
+                                    Sin datos
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Turbiedad</td>
+                            <td>{{ estadisticas.get('cantidad_turbiedad', 0) or 0 }}</td>
+                            <td>
+                                {% if estadisticas.get('minimo_turbiedad') is not none %}
+                                    {{ "%.2f"|format(estadisticas.get('minimo_turbiedad')) }}
+                                {% else %}
+                                    Sin datos
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if estadisticas.get('maximo_turbiedad') is not none %}
+                                    {{ "%.2f"|format(estadisticas.get('maximo_turbiedad')) }}
+                                {% else %}
+                                    Sin datos
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if estadisticas.get('promedio_turbiedad') is not none %}
+                                    {{ "%.2f"|format(estadisticas.get('promedio_turbiedad')) }}
+                                {% else %}
+                                    Sin datos
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Cloro residual libre</td>
+                            <td>{{ estadisticas.get('cantidad_cloro', 0) or 0 }}</td>
+                            <td>
+                                {% if estadisticas.get('minimo_cloro') is not none %}
+                                    {{ "%.2f"|format(estadisticas.get('minimo_cloro')) }}
+                                {% else %}
+                                    Sin datos
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if estadisticas.get('maximo_cloro') is not none %}
+                                    {{ "%.2f"|format(estadisticas.get('maximo_cloro')) }}
+                                {% else %}
+                                    Sin datos
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if estadisticas.get('promedio_cloro') is not none %}
+                                    {{ "%.2f"|format(estadisticas.get('promedio_cloro')) }}
+                                {% else %}
+                                    Sin datos
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel registros">
+            <h2>Registros encontrados</h2>
+
+            {% if registros %}
+
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha de muestra</th>
+                                <th>Código</th>
+                                <th>Tipo</th>
+                                <th>Color aparente</th>
+                                <th>Turbiedad</th>
+                                <th>pH</th>
+                                <th>Cloro residual</th>
+                                <th>Dureza total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for registro in registros %}
+                                <tr>
+                                    <td>{{ registro.id }}</td>
+                                    <td>{{ registro.fecha_toma_muestra or 'Sin dato' }}</td>
+                                    <td>{{ registro.codigo_muestra or 'Sin dato' }}</td>
+                                    <td>{{ registro.tipo_muestra or 'Sin dato' }}</td>
+                                    <td>{{ registro.color_aparente or 'Sin dato' }}</td>
+                                    <td>{{ registro.turbiedad or 'Sin dato' }}</td>
+                                    <td>{{ registro.ph or 'Sin dato' }}</td>
+                                    <td>{{ registro.cloro_residual_libre or 'Sin dato' }}</td>
+                                    <td>{{ registro.dureza_total or 'Sin dato' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="contador">
+                    Registros mostrados: {{ registros|length }}
+                </p>
+
+            {% else %}
+
+                <p class="sin-registros">
+                    No se encontraron registros para la búsqueda realizada.
+                </p>
+
+            {% endif %}
+        </section>
+
+        <footer class="pie">
+            <p>Sistema Web de Consulta y Análisis de Datos Abiertos de Colombia</p>
+            <p>Fuente: datos.gov.co - Calidad del Agua de Cartago</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>
